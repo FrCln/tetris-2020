@@ -1,7 +1,6 @@
 from random import *
 
 import pygame
-from pygame import *
 
 import tetris_settings as sett
 
@@ -234,8 +233,9 @@ destroyed_lines = 0  # После усовершенствования счет�
 finished = False
 clock = pygame.time.Clock()
 
-control_tick = 0
-moving_delay = 500
+horizontal_control_tick = vertical_control_tick = 0
+vertical_move_delay = 500
+horizontal_move_delay = 100
 
 while not finished:
     clock.tick(sett.FPS)
@@ -247,14 +247,20 @@ while not finished:
                 curr_fig.turn(1)
             elif event.key == pygame.K_DOWN:
                 curr_fig.turn(-1)
-    if pygame.key.get_pressed()[pygame.K_LEFT]:
-        curr_fig.hor_move(-1)
-    elif pygame.key.get_pressed()[pygame.K_RIGHT]:
-        curr_fig.hor_move(1)
-    if pygame.key.get_pressed()[pygame.K_SPACE]:
-        moving_delay = 25
+            elif event.key == pygame.K_ESCAPE:
+                finished = True
+    keys = pygame.key.get_pressed()
+    if pygame.time.get_ticks() - horizontal_control_tick >= horizontal_move_delay:
+        if keys[pygame.K_LEFT]:
+            curr_fig.hor_move(-1)
+            horizontal_control_tick = pygame.time.get_ticks()
+        elif keys[pygame.K_RIGHT]:
+            curr_fig.hor_move(1)
+            horizontal_control_tick = pygame.time.get_ticks()
+    if keys[pygame.K_SPACE]:
+        vertical_move_delay = 25
     else:
-        moving_delay = 500
+        vertical_move_delay = 500
 
     screen.fill(sett.WHITE)  # Фон
 
@@ -273,9 +279,9 @@ while not finished:
 
     # noinspection PyUnboundLocalVariable
     if can_be_moved:
-        if pygame.time.get_ticks() - control_tick >= moving_delay:
+        if pygame.time.get_ticks() - vertical_control_tick >= vertical_move_delay:
             curr_fig.vert_move()
-            control_tick = pygame.time.get_ticks()
+            vertical_control_tick = pygame.time.get_ticks()
     else:
         for j in curr_fig.make():
             glass.block_cell(j.y, j.x)
